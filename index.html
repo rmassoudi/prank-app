@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="flame">
+<title>flame</title>
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwJSIgeTE9IjAlIiB4Mj0iMTAwJSIgeTI9IjEwMCUiPjxzdG9wIG9mZnNldD0iMCUiIHN0b3AtY29sb3I9IiNGRDI5N0IiLz48c3RvcCBvZmZzZXQ9IjUwJSIgc3RvcC1jb2xvcj0iI0ZGNTg2NCIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iI0ZGNjAzNiIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiByeD0iNDAiIGZpbGw9InVybCgjZykiLz48cGF0aCBkPSJNOTAgMzVjMCAyNSAzMCAzNSAzMCA2NSAwIDIwLTE1IDM1LTMwIDM1cy0zMC0xNS0zMC0zNWMwLTE4IDEyLTI4IDE4LTQyIDQgMTAgMTIgMTIgMTIgMjJ6IiBmaWxsPSIjZmZmIi8+PC9zdmc+">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+    background: #000;
+    color: #fff;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+  }
+  .screen {
+    position: fixed;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .screen.active { display: flex; }
+
+  /* SPLASH */
+  #splash {
+    background: linear-gradient(135deg, #FD297B 0%, #FF5864 50%, #FF6036 100%);
+  }
+  .flame {
+    width: 120px;
+    height: 140px;
+    margin-bottom: 20px;
+    filter: drop-shadow(0 8px 24px rgba(0,0,0,0.25));
+    animation: flicker 2s ease-in-out infinite;
+  }
+  @keyframes flicker {
+    0%, 100% { transform: scale(1) rotate(-1deg); }
+    50% { transform: scale(1.04) rotate(1deg); }
+  }
+  .splash-title {
+    font-size: 42px;
+    font-weight: 300;
+    letter-spacing: -1px;
+    color: #fff;
+    margin-bottom: 60px;
+  }
+  .dots {
+    display: flex;
+    gap: 8px;
+  }
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.8);
+    animation: bounce 1.4s infinite ease-in-out;
+  }
+  .dot:nth-child(2) { animation-delay: 0.16s; }
+  .dot:nth-child(3) { animation-delay: 0.32s; }
+  @keyframes bounce {
+    0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; }
+    40% { transform: scale(1); opacity: 1; }
+  }
+
+  /* TAP TO START (for browsers that require user gesture) */
+  #tap-start {
+    background: linear-gradient(135deg, #FD297B 0%, #FF5864 50%, #FF6036 100%);
+  }
+  .tap-btn {
+    background: #fff;
+    color: #FF5864;
+    border: none;
+    padding: 16px 40px;
+    font-size: 18px;
+    font-weight: 600;
+    border-radius: 30px;
+    margin-top: 40px;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  }
+
+  /* REVEAL */
+  #reveal {
+    background: #000;
+  }
+  #captured-bg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1);
+  }
+  .reveal-overlay {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at center, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.85) 100%);
+  }
+  .reveal-content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    padding: 20px;
+  }
+  .reveal-big {
+    font-size: 58px;
+    font-weight: 900;
+    letter-spacing: -2px;
+    line-height: 1;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #FD297B, #FF6036);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 4px 20px rgba(255,88,100,0.5);
+    animation: slam 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+  }
+  @keyframes slam {
+    0% { transform: scale(3); opacity: 0; }
+    60% { transform: scale(0.9); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+  .reveal-sub {
+    font-size: 22px;
+    font-weight: 500;
+    color: #fff;
+    margin-bottom: 12px;
+    animation: fadeUp 0.8s 0.4s backwards;
+  }
+  .reveal-caught {
+    font-size: 16px;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 40px;
+    animation: fadeUp 0.8s 0.6s backwards;
+  }
+  @keyframes fadeUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .got-btn {
+    background: linear-gradient(135deg, #FD297B, #FF6036);
+    color: #fff;
+    border: none;
+    padding: 16px 48px;
+    font-size: 18px;
+    font-weight: 700;
+    border-radius: 30px;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(253,41,123,0.4);
+    animation: fadeUp 0.8s 0.8s backwards;
+  }
+  .got-btn:active { transform: scale(0.96); }
+
+  /* Secret corner for gallery access */
+  .secret-zone {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 60px;
+    height: 60px;
+    z-index: 10;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* ERROR / NO CAMERA */
+  .err-msg {
+    padding: 30px;
+    text-align: center;
+    font-size: 16px;
+    max-width: 320px;
+  }
+
+  /* GALLERY */
+  #gallery {
+    background: #0a0a0a;
+    justify-content: flex-start;
+    align-items: stretch;
+    overflow-y: auto;
+  }
+  .gallery-header {
+    position: sticky;
+    top: 0;
+    background: rgba(10,10,10,0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 16px 20px;
+    padding-top: max(16px, env(safe-area-inset-top));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    z-index: 10;
+  }
+  .gallery-title {
+    font-size: 20px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #FD297B, #FF6036);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .icon-btn {
+    background: rgba(255,255,255,0.08);
+    border: none;
+    color: #fff;
+    width: 36px;
+    height: 36px;
+    border-radius: 18px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .icon-btn:active { background: rgba(255,255,255,0.15); }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 3px;
+    padding: 3px;
+  }
+  .thumb {
+    aspect-ratio: 1;
+    background: #1a1a1a;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+  }
+  .thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scaleX(-1);
+  }
+  .thumb-time {
+    position: absolute;
+    bottom: 4px;
+    left: 4px;
+    right: 4px;
+    font-size: 10px;
+    color: #fff;
+    background: rgba(0,0,0,0.6);
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-align: center;
+  }
+  .empty {
+    padding: 60px 20px;
+    text-align: center;
+    color: rgba(255,255,255,0.5);
+  }
+  .empty-flame { font-size: 48px; margin-bottom: 16px; }
+  .clear-btn {
+    margin: 20px;
+    padding: 14px;
+    background: rgba(255,68,68,0.15);
+    color: #ff4444;
+    border: 1px solid rgba(255,68,68,0.3);
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  /* FULL VIEW */
+  #viewer {
+    background: #000;
+    z-index: 100;
+  }
+  #viewer img {
+    max-width: 100%;
+    max-height: 70vh;
+    object-fit: contain;
+    transform: scaleX(-1);
+  }
+  .viewer-actions {
+    position: absolute;
+    bottom: 40px;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    padding: 0 20px;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .viewer-btn {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 12px 20px;
+    border-radius: 24px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .viewer-btn.danger {
+    background: rgba(255,68,68,0.15);
+    color: #ff4444;
+    border-color: rgba(255,68,68,0.3);
+  }
+  .viewer-close {
+    position: absolute;
+    top: 20px;
+    top: max(20px, env(safe-area-inset-top));
+    right: 20px;
+    z-index: 2;
+  }
+  .viewer-meta {
+    position: absolute;
+    top: 20px;
+    top: max(20px, env(safe-area-inset-top));
+    left: 20px;
+    font-size: 14px;
+    color: rgba(255,255,255,0.7);
+  }
+
+  /* Hidden video/canvas */
+  #cam { display: none; }
+</style>
+</head>
+<body>
+
+<!-- SPLASH / loading -->
+<div id="splash" class="screen active">
+  <svg class="flame" viewBox="0 0 120 140" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="flameGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+        <stop offset="0%" stop-color="#fff" stop-opacity="0.95"/>
+        <stop offset="100%" stop-color="#fff" stop-opacity="0.8"/>
+      </linearGradient>
+    </defs>
+    <path d="M60 10 C60 35, 95 45, 95 85 C95 115, 78 130, 60 130 C42 130, 25 115, 25 85 C25 60, 42 50, 50 30 C54 42, 60 42, 60 25 Z" fill="url(#flameGrad)"/>
+  </svg>
+  <div class="splash-title">flame</div>
+  <div class="dots">
+    <div class="dot"></div>
+    <div class="dot"></div>
+    <div class="dot"></div>
+  </div>
+</div>
+
+<!-- TAP TO START (fallback for permission gesture) -->
+<div id="tap-start" class="screen">
+  <svg class="flame" viewBox="0 0 120 140" xmlns="http://www.w3.org/2000/svg">
+    <path d="M60 10 C60 35, 95 45, 95 85 C95 115, 78 130, 60 130 C42 130, 25 115, 25 85 C25 60, 42 50, 50 30 C54 42, 60 42, 60 25 Z" fill="#fff"/>
+  </svg>
+  <div class="splash-title">flame</div>
+  <button class="tap-btn" id="tap-btn">Tap to continue</button>
+</div>
+
+<!-- REVEAL -->
+<div id="reveal" class="screen">
+  <img id="captured-bg" alt="">
+  <div class="reveal-overlay"></div>
+  <div class="reveal-content">
+    <div class="reveal-big">MADE YOU<br>LOOK!</div>
+    <div class="reveal-sub">Caught you snooping</div>
+    <div class="reveal-caught">This is a prank app. Smile, you're on camera.</div>
+    <button class="got-btn" id="got-btn">Got me</button>
+  </div>
+  <div class="secret-zone" id="secret-zone"></div>
+</div>
+
+<!-- ERROR (no camera) -->
+<div id="error" class="screen">
+  <div class="err-msg">
+    <div style="font-size: 48px; margin-bottom: 16px;">🔥</div>
+    <div>Camera access was denied. Grant permission in settings to use flame.</div>
+    <button class="tap-btn" style="margin-top: 30px;" id="retry-btn">Retry</button>
+  </div>
+  <div class="secret-zone" id="secret-zone-err"></div>
+</div>
+
+<!-- GALLERY -->
+<div id="gallery" class="screen">
+  <div class="gallery-header">
+    <button class="icon-btn" id="gallery-back">&#x2715;</button>
+    <div class="gallery-title">Caught in 4K</div>
+    <div style="width: 36px;"></div>
+  </div>
+  <div id="gallery-content"></div>
+</div>
+
+<!-- VIEWER -->
+<div id="viewer" class="screen">
+  <button class="icon-btn viewer-close" id="viewer-close">&#x2715;</button>
+  <div class="viewer-meta" id="viewer-meta"></div>
+  <img id="viewer-img" alt="">
+  <div class="viewer-actions">
+    <button class="viewer-btn" id="viewer-download">Save</button>
+    <button class="viewer-btn danger" id="viewer-delete">Delete</button>
+  </div>
+</div>
+
+<!-- Camera plumbing -->
+<video id="cam" autoplay playsinline muted></video>
+
+<script>
+(function() {
+  'use strict';
+
+  // ---------- Storage abstraction (window.storage for Claude artifact, localStorage elsewhere, in-memory fallback) ----------
+  const memStore = {};
+  const storage = {
+    async get(key) {
+      try {
+        if (window.storage && typeof window.storage.get === 'function') {
+          const r = await window.storage.get(key);
+          return r ? r.value : null;
+        }
+      } catch (e) {}
+      try {
+        const v = localStorage.getItem(key);
+        return v !== null ? v : null;
+      } catch (e) {}
+      return memStore[key] || null;
+    },
+    async set(key, value) {
+      try {
+        if (window.storage && typeof window.storage.set === 'function') {
+          await window.storage.set(key, value);
+          return;
+        }
+      } catch (e) {}
+      try {
+        localStorage.setItem(key, value);
+        return;
+      } catch (e) {}
+      memStore[key] = value;
+    }
+  };
+
+  const CAPTURES_KEY = 'flame_captures_v1';
+
+  async function loadCaptures() {
+    const raw = await storage.get(CAPTURES_KEY);
+    if (!raw) return [];
+    try { return JSON.parse(raw); } catch { return []; }
+  }
+  async function saveCaptures(arr) {
+    await storage.set(CAPTURES_KEY, JSON.stringify(arr));
+  }
+
+  // ---------- Screens ----------
+  const screens = {
+    splash: document.getElementById('splash'),
+    tap: document.getElementById('tap-start'),
+    reveal: document.getElementById('reveal'),
+    error: document.getElementById('error'),
+    gallery: document.getElementById('gallery'),
+    viewer: document.getElementById('viewer')
+  };
+  function show(name) {
+    Object.values(screens).forEach(s => s.classList.remove('active'));
+    screens[name].classList.add('active');
+  }
+
+  // ---------- Camera ----------
+  const video = document.getElementById('cam');
+  let stream = null;
+
+  async function startCamera() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      show('error');
+      return;
+    }
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 1280 } },
+        audio: false
+      });
+      video.srcObject = stream;
+      await new Promise(res => {
+        if (video.readyState >= 2) return res();
+        video.onloadedmetadata = () => res();
+      });
+      await video.play().catch(() => {});
+      // Give camera a moment to adjust exposure/focus
+      await new Promise(r => setTimeout(r, 600));
+      await capturePhoto();
+    } catch (err) {
+      console.error(err);
+      show('error');
+    }
+  }
+
+  async function capturePhoto() {
+    const w = video.videoWidth || 720;
+    const h = video.videoHeight || 720;
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, w, h);
+    // JPEG at 0.8 for reasonable size
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+
+    // Show on reveal
+    document.getElementById('captured-bg').src = dataUrl;
+    show('reveal');
+
+    // Save
+    const captures = await loadCaptures();
+    captures.unshift({
+      id: 'c_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+      timestamp: Date.now(),
+      dataUrl: dataUrl
+    });
+    // Cap at 100 captures to avoid blowing storage
+    if (captures.length > 100) captures.length = 100;
+    await saveCaptures(captures);
+
+    // Kill camera
+    if (stream) {
+      stream.getTracks().forEach(t => t.stop());
+      stream = null;
+    }
+  }
+
+  // ---------- Boot sequence ----------
+  // iOS Safari requires a user gesture for getUserMedia in most cases.
+  // Strategy: show splash for ~1.5s, try to autostart. If it fails or
+  // if we detect we need a gesture, show the tap screen.
+  async function boot() {
+    await new Promise(r => setTimeout(r, 1500));
+    // Try auto. If permission was already granted before, it works silently.
+    try {
+      await startCamera();
+    } catch (e) {
+      show('tap');
+    }
+  }
+
+  document.getElementById('tap-btn').addEventListener('click', () => {
+    show('splash');
+    setTimeout(startCamera, 400);
+  });
+  document.getElementById('retry-btn').addEventListener('click', () => {
+    show('splash');
+    setTimeout(startCamera, 400);
+  });
+
+  document.getElementById('got-btn').addEventListener('click', () => {
+    // On native install, window.close() won't work. Just show a friendly end state.
+    document.getElementById('got-btn').textContent = 'Gotcha';
+    document.getElementById('got-btn').disabled = true;
+  });
+
+  // ---------- Secret gallery access: long-press 3s on bottom-right ----------
+  function attachSecret(el) {
+    let timer = null;
+    const start = (e) => {
+      timer = setTimeout(openGallery, 3000);
+    };
+    const cancel = () => { if (timer) { clearTimeout(timer); timer = null; } };
+    el.addEventListener('touchstart', start, { passive: true });
+    el.addEventListener('touchend', cancel);
+    el.addEventListener('touchcancel', cancel);
+    el.addEventListener('touchmove', cancel);
+    el.addEventListener('mousedown', start);
+    el.addEventListener('mouseup', cancel);
+    el.addEventListener('mouseleave', cancel);
+  }
+  attachSecret(document.getElementById('secret-zone'));
+  attachSecret(document.getElementById('secret-zone-err'));
+
+  // Bonus: triple-tap flame on splash also opens gallery (for you the owner, before camera finishes)
+  let splashTaps = 0;
+  let splashTapTimer = null;
+  document.querySelector('#splash .flame').addEventListener('click', () => {
+    splashTaps++;
+    clearTimeout(splashTapTimer);
+    splashTapTimer = setTimeout(() => { splashTaps = 0; }, 800);
+    if (splashTaps >= 3) {
+      splashTaps = 0;
+      if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+      openGallery();
+    }
+  });
+
+  // ---------- Gallery ----------
+  async function openGallery() {
+    if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+    const captures = await loadCaptures();
+    renderGallery(captures);
+    show('gallery');
+  }
+
+  function formatTime(ts) {
+    const d = new Date(ts);
+    return d.toLocaleString(undefined, {
+      month: 'numeric', day: 'numeric',
+      hour: 'numeric', minute: '2-digit'
+    });
+  }
+
+  function renderGallery(captures) {
+    const root = document.getElementById('gallery-content');
+    if (!captures.length) {
+      root.innerHTML = `
+        <div class="empty">
+          <div class="empty-flame">🔥</div>
+          <div>No victims yet.</div>
+          <div style="font-size: 13px; margin-top: 8px; opacity: 0.6;">Photos will show up here.</div>
+        </div>`;
+      return;
+    }
+    const grid = captures.map(c => `
+      <div class="thumb" data-id="${c.id}">
+        <img src="${c.dataUrl}" alt="">
+        <div class="thumb-time">${formatTime(c.timestamp)}</div>
+      </div>
+    `).join('');
+    root.innerHTML = `
+      <div class="grid">${grid}</div>
+      <button class="clear-btn" id="clear-all">Delete all photos</button>
+    `;
+    root.querySelectorAll('.thumb').forEach(t => {
+      t.addEventListener('click', () => openViewer(t.dataset.id));
+    });
+    document.getElementById('clear-all').addEventListener('click', async () => {
+      if (confirm('Delete every captured photo? This cannot be undone.')) {
+        await saveCaptures([]);
+        renderGallery([]);
+      }
+    });
+  }
+
+  document.getElementById('gallery-back').addEventListener('click', () => {
+    show('splash');
+    boot();
+  });
+
+  // ---------- Viewer ----------
+  let currentViewId = null;
+  async function openViewer(id) {
+    const captures = await loadCaptures();
+    const c = captures.find(x => x.id === id);
+    if (!c) return;
+    currentViewId = id;
+    document.getElementById('viewer-img').src = c.dataUrl;
+    document.getElementById('viewer-meta').textContent = formatTime(c.timestamp);
+    show('viewer');
+  }
+  document.getElementById('viewer-close').addEventListener('click', () => {
+    currentViewId = null;
+    openGallery();
+  });
+  document.getElementById('viewer-download').addEventListener('click', async () => {
+    const captures = await loadCaptures();
+    const c = captures.find(x => x.id === currentViewId);
+    if (!c) return;
+    const a = document.createElement('a');
+    a.href = c.dataUrl;
+    a.download = 'flame-' + c.timestamp + '.jpg';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  });
+  document.getElementById('viewer-delete').addEventListener('click', async () => {
+    if (!currentViewId) return;
+    if (!confirm('Delete this photo?')) return;
+    let captures = await loadCaptures();
+    captures = captures.filter(x => x.id !== currentViewId);
+    await saveCaptures(captures);
+    currentViewId = null;
+    openGallery();
+  });
+
+  // Kick off
+  boot();
+})();
+</script>
+</body>
+</html>
